@@ -1,0 +1,8 @@
+{
+    "session": "correios-tracker",
+    "multidevice": true,
+    "useChrome": false,
+    "browserArgs": [
+        "--no-sandbox"
+    ]
+}
