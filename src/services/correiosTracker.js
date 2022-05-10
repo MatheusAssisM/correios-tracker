@@ -1,31 +1,45 @@
-const trackingCodes = require('../helpers/trackingCodes.json')
+const subscribersNumbers = require('../helpers/clientNumbers.json')
 
 class CorreiosTracker {
-    constructor(venomClient, correiosClient, orderRepository) {
-        this.venomClient = venomClient
+    constructor(venomService, correiosClient, orderRepository, messageService) {
+        this.venomService = venomService
         this.correiosClient = correiosClient
         this.orderRepository = orderRepository
+        this.messageService = messageService
     }
 
     checkOrder = async () => {
-        let message = ""
         const orders = await this.orderRepository.getAll()
+        try {
+            let messageList = this.checkOrderStatus(orders)
+            if (!messageList.length) {
+                return
+            }
+
+            const message = this.messageService.buildMessageString(messageList)
+            this.venomService.sendMessageForSubscribers(message)
+        } catch (error) {
+            this.venomService.notifyError()
+            return
+        }
+
+    }
+
+    checkOrderStatus = async (orders) => {
+        let messageList = []
         for (const order of orders) {
             try {
                 const code = order.code
                 const objects = await this.getOrderObjects(code)
                 const targetOrder = this.findObject(objects, code)
                 const lastStatus = await this.getLastStatus(targetOrder, order)
-                message += this.prepareMessage(lastStatus, order)
+                messageList.push(this.messageService.prepareMessage(lastStatus, order))
             } catch (error) {
                 console.log(error.message)
                 continue
             }
         }
-        if (!message.length) {
-            return
-        }
-        this.sendMessage(message)
+        return messageList
     }
 
     getOrderObjects = async (code) => {
@@ -46,7 +60,7 @@ class CorreiosTracker {
         if (!events) {
             throw new Error('Error getting order events')
         }
-        
+
         const eventsQuantity = events.length
         if (order.statusQuantity === eventsQuantity) {
             throw new Error('Dont need to update order')
@@ -56,43 +70,6 @@ class CorreiosTracker {
         this.orderRepository.update(order.id, { statusQuantity: eventsQuantity })
         return lastStatus
     }
-
-    updateOrderStatus = async (order, status) => {
-
-    }
-
-    prepareMessage = (lastStatus, order) => {
-        const { date, time } = this.prepareData(lastStatus.dtHrCriado)
-        const address = this.prepareAddress(lastStatus.unidade)
-        let message = `*Objeto*: ${order.name} - ${order.code}\n*Status*: ${lastStatus.descricao}\n*Local*: ${address}\n*Data*: ${date} as ${time}\n\n`
-        return message
-    }
-
-    prepareData = (date) => {
-        let dates = date.split('T')
-        return {
-            date: dates[0],
-            time: dates[1]
-        }
-    }
-
-    prepareAddress = (unity) => {
-        if (Object.keys(unity.endereco).length !== 0) {
-            return `${unity.endereco.cidade}`
-        }
-        return `${unity.nome}`
-    }
-
-    sendMessage = (message) => {
-        const numbers = [
-            '556185775929@c.us',
-            '556181949859@c.us'
-        ]
-        numbers.forEach(number => {
-            this.venomClient.sendText(number, message)
-        })
-    }
-
 }
 
 module.exports = CorreiosTracker
