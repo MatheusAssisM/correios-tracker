@@ -11,11 +11,10 @@ class CorreiosTracker {
     checkOrder = async () => {
         const orders = await this.orderRepository.getAll()
         try {
-            let messageList = this.checkOrderStatus(orders)
+            let messageList = await this.checkOrderStatus(orders)
             if (!messageList.length) {
                 return
             }
-
             const message = this.messageService.buildMessageString(messageList)
             this.venomService.sendMessageForSubscribers(message)
         } catch (error) {

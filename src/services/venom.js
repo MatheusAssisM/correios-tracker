@@ -9,6 +9,7 @@ class VenomService {
 
     sendMessageForSubscribers = (message) => {
         this.subscribersNumbers.forEach(number => {
+            console.log(`Sending message to ${number}`)
             this.venomClient.sendText(number, message)
         })
     }

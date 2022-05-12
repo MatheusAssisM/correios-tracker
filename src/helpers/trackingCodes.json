@@ -1,26 +1,13 @@
 [
     {
         "name": "Kit Xeon_1",
-        "code": "LB328200610HK"
+        "code": "LB328200610HK",
+        "statusQuantity": 5
+
     },
     {
         "name": "Kit Xeon_2",
-        "code": "LX709538808CN"
-    },
-    {
-        "name": "SSD NVME",
-        "code": "LB325719516HK"
-    },
-    {
-        "name": "MEMORIA RAM",
-        "code": "LB326048967HK"
-    },
-    {
-        "name": "PASTA TERMICA",
-        "code": "LB325906686HK"
-    },
-    {
-        "name": "WIFI",
-        "code": "NL085466515BR"
+        "code": "LX709538808CN",
+        "statusQuantity": 6
     }
 ]
